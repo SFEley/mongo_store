@@ -31,14 +31,14 @@ module ActiveSupport
       # Inserts the value into the cache collection or updates the existing value.  The value must be a valid
       # MongoDB type.  An *:expires_in* option may be provided, as with MemCacheStore.  If one is _not_ 
       # provided, a default expiration of 1 year is used.
-      def write(key, value, options={})
+      def write(key, value, options=nil)
         super
-        expires = Time.now + (options[:expires_in] || 1.year)
+        expires = Time.now + ((options && options[:expires_in]) || 1.year)
         collection.update({'key' => key}, {'$set' => {'value' => value, 'expires' => expires}}, :upsert => true)
       end
       
       # Reads the value from the cache collection.
-      def read(key, options={})
+      def read(key, options=nil)
         super
         if doc = collection.find_one('key' => key, 'expires' => {'$gt' => Time.now})
           doc['value']
@@ -46,7 +46,7 @@ module ActiveSupport
       end
         
       # Takes the specified value out of the collection.
-      def delete(key, options={})
+      def delete(key, options=nil)
         super
         collection.remove({'key' => key})
       end
