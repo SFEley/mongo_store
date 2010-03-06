@@ -1,6 +1,6 @@
-= mongo_store
+= MongoStore
 
-Description goes here.
+It's **ActiveSupport::Cache::MongoStore** -- if you know your Rails caching, _'nuff said._  
 
 == Note on Patches/Pull Requests
  
