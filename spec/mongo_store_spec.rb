@@ -75,7 +75,7 @@ describe "MongoStore" do
     end
     
     it "can read values" do
-      @store.collection.insert({:key => 'yoo', :value => 'yar'})
+      @store.collection.insert({:key => 'yoo', :value => 'yar', :expires => 1.year.from_now})
       @store.read('yoo').should == 'yar'
     end
     
