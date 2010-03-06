@@ -5,30 +5,68 @@ class MongoMapper
 end
     
 describe "MongoStore" do
-  describe "database" do
-    it "can be specified as an option" do
-      db = Mongo::DB.new("tsetse", Mongo::Connection.new('example.org', 11111, :connect => false))
-      store = ActiveSupport::Cache.lookup_store(:mongo_store, db)
-      store.database.should == db
+  describe "collection" do
+    it "can be specified as a Mongo::Collection object" do
+      db = Mongo::DB.new('mongo_store_test', Mongo::Connection.new)
+      coll = Mongo::Collection.new(db, 'foostore')
+      store = ActiveSupport::Cache.lookup_store(:mongo_store, coll)
+      store.collection.should == coll
     end
     
-    it "will find MongoMapper's if it exists" do
-      db = Mongo::DB.new("foobar", Mongo::Connection.new('example.org', 11111, :connect => false))
-      MongoMapper.expects(:database).returns(db)
-      store = ActiveSupport::Cache.lookup_store(:mongo_store)
-      store.database.should == db
+    it "can take a collection name and a database name" do
+      store = ActiveSupport::Cache.lookup_store(:mongo_store, 'foo', 'bar')
+      store.collection.name.should == 'foo'
+      store.collection.db.name.should == 'bar'
     end
     
-    it "will create a sensible default if nothing else is provided" do
-      store = ActiveSupport::Cache.lookup_store(:mongo_store)
-      store.database.should be_a(Mongo::DB)
-    end
-    
-    it "uses 'rails_cache' as the default database name" do
-      store = ActiveSupport::Cache.lookup_store(:mongo_store)
-      store.database.name.should == 'rails_cache'
-    end
+    describe "with MongoMapper" do
+      before(:each) do
+        db = Mongo::DB.new('mappy', Mongo::Connection.new)
+        MongoMapper.expects(:database).twice.returns(db)
+      end
       
-      
+      it "can take a collection name" do
+        store = ActiveSupport::Cache.lookup_store(:mongo_store, 'happy')
+        store.collection.name.should == 'happy'
+        store.collection.db.name.should == 'mappy'
+      end
+        
+      it "defaults to a 'rails_cache' collection" do
+        store = ActiveSupport::Cache.lookup_store(:mongo_store)
+        store.collection.name.should == 'rails_cache'
+        store.collection.db.name.should == 'mappy'
+      end
+    end
+    
+    describe "without MongoMapper" do
+      it "can take a collection name" do
+        store = ActiveSupport::Cache.lookup_store(:mongo_store, 'yuna')
+        store.collection.name.should == 'yuna'
+        store.collection.db.name.should == 'yuna'
+      end
+        
+      it "defaults to a 'rails_cache' collection" do
+        store = ActiveSupport::Cache.lookup_store(:mongo_store)
+        store.collection.name.should == 'rails_cache'
+        store.collection.db.name.should == 'rails_cache'
+      end
+    end
+    
+    it "raises an exception if an unusable parameter is passed" do
+      lambda{ActiveSupport::Cache.lookup_store(:mongo_store, 5)}.should raise_error(TypeError)
+    end
+    
+    it "creates a capped collection of 100 MB" do
+      store = ActiveSupport::Cache.lookup_store(:mongo_store)
+      store.collection.options['capped'].should be_true
+      store.collection.options['size'].should == 104_857_600
+    end
+    
+    after(:all) do
+      c = Mongo::Connection.new
+      %w(bar mappy rails_cache yuna).each do |db|
+        c.drop_database(db)
+      end
+    end  
   end
 end
