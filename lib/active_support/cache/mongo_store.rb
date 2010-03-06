@@ -6,19 +6,18 @@ module ActiveSupport
     class MongoStore < Store
       attr_reader :collection
       
-      # Returns a MongoDB cache store.  Takes several possible combinations of parameters.  In order of
-      # escalating guesswork:
+      # Returns a MongoDB cache store.  Can take either a Mongo::Collection object or a collection name.
+      # If neither is provided, a collection named "rails_store" is created.
       #
-      # 1. *a Mongo::Collection object* - No guessing. The collection is used as the cache store.
-      # 2. *a collection name and a database name* - Mongo objects are created for both.  The default 'localhost:27017' connection is used.
-      # 3. *a collection name* - Uses either MongoMapper.database (if MongoMapper is defined in the app) or a DB with the same name.
-      # 4. *no parameters* - A collection named 'rails_cache' is created, using either MongoMapper.database (if MongoMapper is defined in the app) or a DB also named 'rails_cache'.
-      #
-      # Unless option 1 is used, indexes are created on the key and expiration fields. If you supply your own collection,
-      # you are also responsible for making your own indexes.
+      # An options hash may also be provided with the following options:
+      # 
+      # * :expires_in - The default expiration period for cached objects. If not provided, defaults to 1 year.
+      # * :db - Either a Mongo::DB object or a database name. Not used if a Mongo::Collection object is passed. Otherwise defaults to MongoMapper.database (if MongoMapper is used in the app) or else creates a DB named 'rails_cache'.
+      # * :create_index - Whether to index the key and expiration date on the collection. Defaults to true. Not used if a Mongo::Collection object is passed.
       def initialize(collection = nil, db_name = nil)
         @collection = case collection
         when Mongo::Collection then collection
+        
         when String
           make_collection(collection, db_name)
         when nil
