@@ -55,18 +55,66 @@ describe "MongoStore" do
     it "raises an exception if an unusable parameter is passed" do
       lambda{ActiveSupport::Cache.lookup_store(:mongo_store, 5)}.should raise_error(TypeError)
     end
-    
-    it "creates a capped collection of 100 MB" do
-      store = ActiveSupport::Cache.lookup_store(:mongo_store)
-      store.collection.options['capped'].should be_true
-      store.collection.options['size'].should == 104_857_600
-    end
-    
+        
     after(:all) do
       c = Mongo::Connection.new
       %w(bar mappy rails_cache yuna).each do |db|
         c.drop_database(db)
       end
     end  
+  end
+  
+  describe "caching" do
+    before(:all) do
+      @store = ActiveSupport::Cache.lookup_store(:mongo_store, 'mongo_store_test')
+    end
+    
+    it "can write values" do
+      @store.write('fnord', 'I am vaguely disturbed.')
+      @store.collection.find_one(:key => 'fnord')['value'].should == "I am vaguely disturbed."
+    end
+    
+    it "can read values" do
+      @store.collection.insert({:key => 'yoo', :value => 'yar'})
+      @store.read('yoo').should == 'yar'
+    end
+    
+    it "can delete keys" do
+      @store.write('foo', 'bar')
+      @store.read('foo').should == 'bar'
+      @store.delete('foo')
+      @store.read('foo').should be_nil
+    end
+    
+    it "can delete keys matching a regular expression" do
+      @store.write('foo', 'bar')
+      @store.write('fodder', 'bother')
+      @store.write('yoo', 'yar')
+      # Initial state
+      @store.read('foo').should == 'bar'
+      @store.read('fodder').should == 'bother'
+      @store.read('yoo').should == 'yar'
+      # The work
+      @store.delete_matched /oo/
+      # Post state
+      @store.read('foo').should be_nil
+      @store.read('fodder').should == 'bother'
+      @store.read('yoo').should be_nil
+    end
+    
+    it "can expire a value with the :expires_in option" do
+      @store.write('ray', 'dar', :expires_in => 2.seconds)
+      @store.read('ray').should == 'dar'
+      sleep(3)
+      @store.read('ray').should be_nil
+    end
+    
+    after(:each) do
+      @store.collection.remove   # Clear our records
+    end
+    after(:all) do
+      c = Mongo::Connection.new
+      c.drop_database('mongo_store_test')
+    end
   end
 end

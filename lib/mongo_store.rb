@@ -14,36 +14,62 @@ module ActiveSupport
       # 3. *a collection name* - Uses either MongoMapper.database (if MongoMapper is defined in the app) or a DB with the same name.
       # 4. *no parameters* - A collection named 'rails_cache' is created, using either MongoMapper.database (if MongoMapper is defined in the app) or a DB also named 'rails_cache'.
       #
-      # Unless option 1 is used, the collection is a capped collection sized at 100 MB.  If you don't
-      # like this, pass in your own Mongo::Collection.
+      # Unless option 1 is used, indexes are created on the key and expiration fields. If you supply your own collection,
+      # you are also responsible for making your own indexes.
       def initialize(collection = nil, db_name = nil)
         @collection = case collection
         when Mongo::Collection then collection
         when String
-          if db_name
-            db = Mongo::DB.new(db_name, Mongo::Connection.new)
-          elsif mongomapper?
-            db = MongoMapper.database
-          else
-            db = Mongo::DB.new(collection, Mongo::Connection.new)
-          end
-         db.create_collection(collection, :capped => true, :size => 104_857_600)
+          make_collection(collection, db_name)
         when nil
-          if mongomapper?
-            db = MongoMapper.database
-          else
-            db = Mongo::DB.new('rails_cache', Mongo::Connection.new)
-          end
-          db.create_collection('rails_cache', :capped => true, :size => 104_857_600)
+          make_collection('rails_cache')
         else
           raise TypeError, "MongoStore parameters must be nil, a Mongo::Collection, or a collection name."
         end
       end
       
+      # Inserts the value into the cache collection or updates the existing value.  Must be a valid
+      # MongoDB type.
+      def write(key, value, options={})
+        super
+        doc = { 'key' => key,
+                'value' => value }
+        collection.update({'key' => key}, doc, :upsert => true)
+      end
+      
+      # Reads the value from the cache collection.
+      def read(key, options={})
+        super
+        if doc = collection.find_one('key' => key)
+          doc['value']
+        end
+      end
+        
+      # Takes the specified value out of the collection.
+      def delete(key, options={})
+        super
+        collection.remove({'key' => key})
+      end
+      
+      # With MongoDB, there's no difference between querying on an exact value or a regex.  Beautiful, huh?
+      alias_method :delete_matched, :delete
+      
       private
       def mongomapper?
         Kernel.const_defined?(:MongoMapper) && MongoMapper.respond_to?(:database) && MongoMapper.database
       end
+      
+      def make_collection(collection, db_name=nil)
+         if db_name
+           db = Mongo::DB.new(db_name, Mongo::Connection.new)
+         elsif mongomapper?
+           db = MongoMapper.database
+         else
+           db = Mongo::DB.new(collection, Mongo::Connection.new)
+         end
+        db.create_collection(collection)
+      end
+        
     end
   end
 end
