@@ -10,17 +10,17 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Stephen Eley"]
   s.date = %q{2010-03-06}
-  s.description = %q{10gen keeps bragging that MongoDB, with its fast writes and memory-mapped architecture, is ideal for caching. This gem puts it to use in Rails.}
+  s.description = %q{It's Rails caching for MongoDB.  'Nuff said.}
   s.email = %q{sfeley@gmail.com}
   s.extra_rdoc_files = [
     "LICENSE",
-     "README.rdoc"
+     "README.markdown"
   ]
   s.files = [
     ".document",
      ".gitignore",
      "LICENSE",
-     "README.rdoc",
+     "README.markdown",
      "Rakefile",
      "VERSION",
      "lib/active_support/cache/mongo_store.rb",

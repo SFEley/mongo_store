@@ -5,8 +5,8 @@ begin
   require 'jeweler'
   Jeweler::Tasks.new do |gem|
     gem.name = "mongo_store"
-    gem.summary = %Q{ActiveSupport::Cache implementation for MongoDB}
-    gem.description = %Q{10gen keeps bragging that MongoDB, with its fast writes and memory-mapped architecture, is ideal for caching. This gem puts it to use in Rails.}
+    gem.summary = %Q{Rails caching for MongoDB}
+    gem.description = %Q{It's ActiveSupport::Cache::MongoStore -- a MongoDB-based provider for the standard Rails cache mechanism.  With an emphasis on fast writes and a memory-mapped architecture, Mongo is well-suited to caching. This gem aims to give you what the ubiquitous MemCacheStore does, but with Mongo's persistence.  (And without having to put a second RAM devourer in an environment already running Mongo.)}
     gem.email = "sfeley@gmail.com"
     gem.homepage = "http://github.com/SFEley/mongo_store"
     gem.authors = ["Stephen Eley"]
