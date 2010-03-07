@@ -5,12 +5,12 @@
 
 Gem::Specification.new do |s|
   s.name = %q{mongo_store}
-  s.version = "0.1.3"
+  s.version = "0.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Stephen Eley"]
   s.date = %q{2010-03-06}
-  s.description = %q{It's Rails caching for MongoDB.  'Nuff said.}
+  s.description = %q{It's ActiveSupport::Cache::MongoStore -- a MongoDB-based provider for the standard Rails cache mechanism.  With an emphasis on fast writes and a memory-mapped architecture, Mongo is well-suited to caching. This gem aims to give you what the ubiquitous MemCacheStore does, but with Mongo's persistence.  (And without having to put a second RAM devourer in an environment already running Mongo.)}
   s.email = %q{sfeley@gmail.com}
   s.extra_rdoc_files = [
     "LICENSE",
@@ -26,7 +26,7 @@ Gem::Specification.new do |s|
      "lib/active_support/cache/mongo_store.rb",
      "lib/mongo_store.rb",
      "mongo_store.gemspec",
-     "spec/mongo_store_spec.rb",
+     "spec/active_support/cache/mongo_store_spec.rb",
      "spec/spec.opts",
      "spec/spec_helper.rb"
   ]
@@ -34,9 +34,9 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.6}
-  s.summary = %q{ActiveSupport::Cache implementation for MongoDB}
+  s.summary = %q{Rails caching for MongoDB}
   s.test_files = [
-    "spec/mongo_store_spec.rb",
+    "spec/active_support/cache/mongo_store_spec.rb",
      "spec/spec_helper.rb"
   ]
 
