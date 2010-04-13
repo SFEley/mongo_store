@@ -106,7 +106,7 @@ module ActiveSupport
           end
         end
         coll = db.create_collection(options[:collection_name])
-        coll.create_index('key' => Mongo::ASCENDING, 'expires' => Mongo::DESCENDING) if options[:create_index]
+        coll.create_index([['key',Mongo::ASCENDING], ['expires',Mongo::DESCENDING]]) if options[:create_index]
         coll
       end
         
