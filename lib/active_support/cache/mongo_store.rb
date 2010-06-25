@@ -43,7 +43,7 @@ module MongoStore
       end
       def read_entry(key, options=nil)
         doc = collection.find_one('key' => key, 'expires' => {'$gt' => Time.now})
-        Entry.new(doc['value']) if doc
+        ActiveSupport::Cache::Entry.new(doc['value']) if doc
       end
       def delete_entry(key, options=nil)
         collection.remove({'key' => key})
