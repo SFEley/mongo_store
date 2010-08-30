@@ -71,7 +71,7 @@ module ActiveSupport
           
         it "defaults to an expiration of 1 year" do
           store = ActiveSupport::Cache.lookup_store(:mongo_store)
-          store.expires_in.should == 1.year
+          store.expires_in.should == 1.day
         end
         
         it "can override expiration time with the :expires_in option" do
@@ -109,7 +109,7 @@ module ActiveSupport
         end
     
         it "can read values" do
-          @store.collection.insert({:key => 'yoo', :value => 'yar', :expires => 1.year.from_now})
+          @store.collection.insert({:key => 'yoo', :value => 'yar', :expires => (Time.now + 10)})
           @store.read('yoo').should == 'yar'
         end
     

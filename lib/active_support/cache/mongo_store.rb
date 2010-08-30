@@ -4,9 +4,11 @@ require 'mongo'
 module MongoStore
   module Cache
     module Rails2
+      attr_reader :options
+      
       # Inserts the value into the cache collection or updates the existing value.  The value must be a valid
       # MongoDB type.  An *:expires_in* option may be provided, as with MemCacheStore.  If one is _not_ 
-      # provided, a default expiration of 1 year is used.
+      # provided, a default expiration of 1 day is used.
       def write(key, value, options=nil)
         super
         expires = Time.now + ((options && options[:expires_in]) || expires_in)
@@ -27,6 +29,7 @@ module MongoStore
         collection.remove({'key' => key})
       end
     end
+    
     module Rails3
       def write_entry(key, entry, options=nil)
         expires = Time.now + ((options && options[:expires_in]) || expires_in)
@@ -64,14 +67,14 @@ module ActiveSupport
       #
       # An options hash may also be provided with the following options:
       # 
-      # * :expires_in - The default expiration period for cached objects. If not provided, defaults to 1 year.
+      # * :expires_in - The default expiration period for cached objects. If not provided, defaults to 1 day.
       # * :db - Either a Mongo::DB object or a database name. Not used if a Mongo::Collection object is passed. Otherwise defaults to MongoMapper.database (if MongoMapper is used in the app) or else creates a DB named "rails_cache".
       # * :create_index - Whether to index the key and expiration date on the collection. Defaults to true. Not used if a Mongo::Collection object is passed.
       def initialize(collection = nil, options = nil)
         @options = {
           :collection_name => 'rails_cache',
           :db_name => 'rails_cache',
-          :expires_in => 1.year,
+          :expires_in => 86400,  # That's 1 day in seconds
           :create_index => true
         }
         # @options.merge!(options) if options
