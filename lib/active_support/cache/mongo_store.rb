@@ -9,29 +9,64 @@ module MongoStore
       # Inserts the value into the cache collection or updates the existing value.  The value must be a valid
       # MongoDB type.  An *:expires_in* option may be provided, as with MemCacheStore.  If one is _not_ 
       # provided, a default expiration of 1 day is used.
-      def write(key, value, options=nil)
+      def write(key, value, local_options=nil)
         super
-        expires = Time.now + ((options && options[:expires_in]) ? options[:expires_in] : expires_in)
-        collection.update({'key' => key}, {'$set' => {'value' => value, 'expires' => expires}}, :upsert => true)
+        opts = local_options ? options.merge(local_options) : options
+        expires = Time.now + opts[:expires_in]
+        collection.update({'key' => namespaced_key(key, opts)}, {'$set' => {'value' => value, 'expires' => expires}}, :upsert => true)
       end
       
       # Reads the value from the cache collection.
-      def read(key, options=nil)
+      def read(key, local_options=nil)
         super
-        if doc = collection.find_one('key' => key, 'expires' => {'$gt' => Time.now})
+        opts = local_options ? options.merge(local_options) : options
+        if doc = collection.find_one('key' => namespaced_key(key, opts), 'expires' => {'$gt' => Time.now})
           doc['value']
         end
       end
         
       # Takes the specified value out of the collection.
-      def delete(key, options=nil)
+      def delete(key, local_options=nil)
         super
-        collection.remove({'key' => key})
+        opts = local_options ? options.merge(local_options) : options
+        collection.remove({'key' => namespaced_key(key,opts)})
       end
       
+
+      # Takes the value matching the pattern out of the collection.
+      def delete_matched(key, local_options=nil)
+        super
+        opts = local_options ? options.merge(local_options) : options
+        collection.remove({'key' => key_matcher(key,opts)})
+      end
+
+            
+      protected
+
+      # Lifted from Rails 3 ActiveSupport::Cache::Store
+      def namespaced_key(key, options)
+        namespace = options[:namespace] if options
+        prefix = namespace.is_a?(Proc) ? namespace.call : namespace
+        key = "#{prefix}:#{key}" if prefix
+        key
+      end
       
-      # With MongoDB, there's no difference between querying on an exact value or a regex.  Beautiful, huh?
-      alias_method :delete_matched, :delete
+      # Lifted from Rails 3 ActiveSupport::Cache::Store
+      def key_matcher(pattern, options)
+        prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
+        if prefix
+          source = pattern.source
+          if source.start_with?('^')
+            source = source[1, source.length]
+          else
+            source = ".*#{source[0, source.length]}"
+          end
+          Regexp.new("^#{Regexp.escape(prefix)}:#{source}", pattern.options)
+        else
+          pattern
+        end
+      end
+      
     end
     
     module Rails3
