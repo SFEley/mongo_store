@@ -5,21 +5,23 @@
 
 Gem::Specification.new do |s|
   s.name = %q{mongo_store}
-  s.version = "0.2.1"
+  s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Stephen Eley"]
-  s.date = %q{2010-04-13}
+  s.date = %q{2010-08-30}
   s.description = %q{It's ActiveSupport::Cache::MongoStore -- a MongoDB-based provider for the standard Rails cache mechanism.  With an emphasis on fast writes and a memory-mapped architecture, Mongo is well-suited to caching. This gem aims to give you what the ubiquitous MemCacheStore does, but with Mongo's persistence.  (And without having to put a second RAM devourer in an environment already running Mongo.)}
   s.email = %q{sfeley@gmail.com}
   s.extra_rdoc_files = [
-    "LICENSE",
+    "LICENSE.markdown",
      "README.markdown"
   ]
   s.files = [
     ".document",
      ".gitignore",
-     "LICENSE",
+     ".rspec",
+     "History.markdown",
+     "LICENSE.markdown",
      "README.markdown",
      "Rakefile",
      "VERSION",
@@ -33,7 +35,7 @@ Gem::Specification.new do |s|
   s.homepage = %q{http://github.com/SFEley/mongo_store}
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.6}
+  s.rubygems_version = %q{1.3.7}
   s.summary = %q{Rails caching for MongoDB}
   s.test_files = [
     "spec/active_support/cache/mongo_store_spec.rb",
@@ -44,21 +46,21 @@ Gem::Specification.new do |s|
     current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 3
 
-    if Gem::Version.new(Gem::RubyGemsVersion) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<mongo>, [">= 0.18.3"])
+    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+      s.add_runtime_dependency(%q<mongo>, [">= 1.0"])
       s.add_runtime_dependency(%q<activesupport>, [">= 2.2"])
-      s.add_development_dependency(%q<rspec>, [">= 2.0.0"])
+      s.add_development_dependency(%q<rspec>, [">= 1.3"])
       s.add_development_dependency(%q<mocha>, [">= 0.9"])
     else
-      s.add_dependency(%q<mongo>, [">= 0.18.3"])
+      s.add_dependency(%q<mongo>, [">= 1.0"])
       s.add_dependency(%q<activesupport>, [">= 2.2"])
-      s.add_dependency(%q<rspec>, [">= 2.0.0"])
+      s.add_dependency(%q<rspec>, [">= 1.3"])
       s.add_dependency(%q<mocha>, [">= 0.9"])
     end
   else
-    s.add_dependency(%q<mongo>, [">= 0.18.3"])
+    s.add_dependency(%q<mongo>, [">= 1.0"])
     s.add_dependency(%q<activesupport>, [">= 2.2"])
-    s.add_dependency(%q<rspec>, [">= 2.0.0"])
+    s.add_dependency(%q<rspec>, [">= 1.3"])
     s.add_dependency(%q<mocha>, [">= 0.9"])
   end
 end
