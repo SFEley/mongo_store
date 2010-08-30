@@ -1,3 +1,15 @@
+0.3.0 / 2010-08-30 
+==================
+  * We have a History file now
+  * Converted license to Don't Be a Dick License v0.2
+  * Updated README
+  * Removed 'key' field; using '_id' instead (thanks wpiekutowski)
+  * Added namespace support to Rails 2 methods
+  * Finished Rails 3 fixes, added more specs
+  * Replace Entry with explicit ActiveSupport::Cache::Entry (thanks openhood)
+  * Updating for Rails2/Rails3 compatibility (thanks openhood)
+  * Fix working with Rails 3
+  * Updating specs for RSpec 2
 
 0.2.1 / 2010-04-13
 ==================
