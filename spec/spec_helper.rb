@@ -6,10 +6,10 @@ require 'rspec'
 require 'rspec/autorun'
 require 'mocha'
 
-# Fake out Rails 3 -- comment out for Rails 2 testing and use a gemset with activesupport ~ 2.3
+# Fake out Rails 3 -- for Rails 2 testing, run with a gemset with activesupport ~ 2.3
 module Rails
   def self.version
-    '3.0.0'
+    ActiveSupport::Cache.const_defined?(:Entry) ? '3.0.0' : '2.3.8'
   end
 end
 

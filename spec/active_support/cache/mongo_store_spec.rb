@@ -172,6 +172,63 @@ module ActiveSupport
           @store.clear
           @store.collection.count.should == 0
         end
+        describe "namespacing" do
+          before(:each) do
+            @store.options[:namespace] = 'ns1'
+            @store.write 'foo', 'bar'
+            @store.write 'too', 'tar'
+            @store.write 'foz', 'baz'
+            @store.write 'foo', 'yar', :namespace => 'ns2'
+            @store.write 'too', 'car', :namespace => 'ns2'
+            @store.write 'foz', 'bat', :namespace => 'ns2'
+          end
+          
+          it "uses the default namespace" do
+            @store.collection.find_one(:key => /ns1.*foo/)['value'].should == "bar"
+          end
+          
+          it "can override the namespace" do
+            @store.collection.find_one(:key => /ns2.*foo/)['value'].should == "yar"
+          end
+          
+          it "can have different values in different namespaces" do
+            @store.read('foo').should == 'bar'
+            @store.read('foo', :namespace => 'ns2').should == 'yar'
+          end
+          
+          it "deletes from the default namespace" do
+            @store.delete('foo')
+            @store.read('foo').should be_nil
+            @store.read('foo', :namespace => 'ns2').should == 'yar'
+          end
+          
+          it "deletes from an overridden namespace" do
+            @store.delete('foo', :namespace => 'ns2')
+            @store.read('foo').should == 'bar'
+            @store.read('foo', :namespace => 'ns2').should be_nil
+          end
+          
+          it "deletes matching patterns from the default namespace" do
+            @store.delete_matched(/oo/)
+            @store.read('foo').should be_nil
+            @store.read('too').should be_nil
+            @store.read('foz').should == 'baz'
+            @store.read('foo', :namespace => 'ns2').should == 'yar'
+            @store.read('too', :namespace => 'ns2').should == 'car'
+            @store.read('foz', :namespace => 'ns2').should == 'bat'
+          end
+          
+          it "deletes matching patterns from the overridden namespace" do
+            @store.delete_matched(/oo/, :namespace => "ns2")
+            @store.read('foo').should == 'bar'
+            @store.read('too').should == 'tar'
+            @store.read('foz').should == 'baz'
+            @store.read('foo', :namespace => 'ns2').should be_nil
+            @store.read('too', :namespace => 'ns2').should be_nil
+            @store.read('foz', :namespace => 'ns2').should == 'bat'
+          end
+
+        end
     
         after(:each) do
           @store.collection.remove   # Clear our records

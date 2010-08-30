@@ -11,7 +11,7 @@ module MongoStore
       # provided, a default expiration of 1 day is used.
       def write(key, value, options=nil)
         super
-        expires = Time.now + ((options && options[:expires_in]) || expires_in)
+        expires = Time.now + ((options && options[:expires_in]) ? options[:expires_in] : expires_in)
         collection.update({'key' => key}, {'$set' => {'value' => value, 'expires' => expires}}, :upsert => true)
       end
       
@@ -28,11 +28,15 @@ module MongoStore
         super
         collection.remove({'key' => key})
       end
+      
+      
+      # With MongoDB, there's no difference between querying on an exact value or a regex.  Beautiful, huh?
+      alias_method :delete_matched, :delete
     end
     
     module Rails3
-      def write_entry(key, entry, options=nil)
-        expires = Time.now + ((options && options[:expires_in]) || expires_in)
+      def write_entry(key, entry, options)
+        expires = Time.now + options[:expires_in]
         value = entry.value
         value = value.to_mongo if value.respond_to? :to_mongo
         begin
@@ -48,10 +52,26 @@ module MongoStore
       def delete_entry(key, options=nil)
         collection.remove({'key' => key})
       end
+      def delete_matched(pattern, options=nil)
+        options = merged_options(options)
+        instrument(:delete_matched, pattern.inspect) do
+          matcher = key_matcher(pattern, options)  # Handles namespacing with regexes
+          delete_entry(matcher, options) 
+        end
+      end
     end
+    
     module Store
       rails3 = defined?(::Rails) && ::Rails.version =~ /^3\./
       include rails3 ? Rails3 : Rails2
+      
+      def expires_in
+        options[:expires_in]
+      end
+      
+      def expires_in=(val)
+        options[:expires_in] = val
+      end
     end
   end
 end
@@ -60,7 +80,6 @@ module ActiveSupport
   module Cache
     class MongoStore < Store
       include ::MongoStore::Cache::Store
-      attr_accessor :expires_in
       
       # Returns a MongoDB cache store.  Can take either a Mongo::Collection object or a collection name.
       # If neither is provided, a collection named "rails_cache" is created.
@@ -92,9 +111,6 @@ module ActiveSupport
         end
         
         @options.merge!(options) if options.is_a?(Hash)
-        
-        # Set the expiration time
-        self.expires_in = @options[:expires_in]
       end
       
       # Returns the MongoDB collection described in the options to .new (or else the default 'rails_cache' one.)
@@ -116,9 +132,6 @@ module ActiveSupport
       def clear
         collection.remove
       end
-
-      # With MongoDB, there's no difference between querying on an exact value or a regex.  Beautiful, huh?
-      alias_method :delete_matched, :delete
       
       private
       def mongomapper?
