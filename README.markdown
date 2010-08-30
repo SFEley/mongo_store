@@ -42,7 +42,7 @@ The following hash options are recognized on initialization:
 MongoStore is a drop-in caching store and doesn't require any special treatment. The only extra behavior on top of what you get from ActiveSupport::Cache::Store is as follows:
 
 ### :expires_in option on the #write method
-This was built into all stores in Rails 3; in Rails 2, we implement it with same behavior as the option in MemCacheStore. Specify a number of seconds or an ActiveSupport helper equivalent, e.g.: `:expires_in => 5.minutes`.  Keys past their expiration date are not returned on reads.
+This was built into all stores in Rails 3. In Rails 2, we implement it with same behavior as the option in MemCacheStore. Specify a number of seconds or an ActiveSupport helper equivalent, e.g.: `:expires_in => 5.minutes`.  Keys past their expiration date are not returned on reads.
 
 _**NOTE:** This behavior is fairly dumb and uses `Time.now` on the application side.  If you have a number of app servers hitting one database and their times aren't in sync, expect unwarranted cache misses._
 
@@ -81,6 +81,9 @@ You can also [check out my podcast](http://escapepod.org) if you like science fi
 
 And Have Fun.
 
-## Copyright
+## License
 
-Copyright (c) 2010 Stephen Eley. See LICENSE for details.
+This project is licensed under the [Don't Be a Dick License](http://dbad-license.org), version 0.2, and is copyright
+2010 by Stephen Eley. See the [LICENSE.markdown](http://github.com/SFEley/mongo_store/blob/master/LICENSE.markdown)
+file for elaboration on not being a dick. (But you probably already know.)
+
