@@ -1,6 +1,7 @@
 # MongoStore
 
-It's **ActiveSupport::Cache::MongoStore** -- a [MongoDB](http://mongodb.org)-based provider for the standard Rails cache mechanism.  With an emphasis on fast writes and a memory-mapped architecture, Mongo is well-suited to caching. This gem aims to give you what the ubiquitous **MemCacheStore** does, but with Mongo's persistence.  (And without having to put a second RAM devourer in an environment already running Mongo.)
+It's **ActiveSupport::Cache::MongoStore** -- a [MongoDB](http://mongodb.org)-based provider for the standard Rails 2 or Rails 3 cache mechanism.  With an emphasis on fast writes and a memory-mapped architecture, Mongo is well-suited to caching. This gem aims to give you what the ubiquitous **MemCacheStore** does, but with Mongo's persistence.  (And without having to put a second RAM devourer in an environment already running Mongo.)
+
 
 ## Getting Started
 
@@ -32,15 +33,16 @@ We don't have a separate option for connecting to a different server.  If you do
 The following hash options are recognized on initialization:
 
 * `:db` - A Mongo::DB object or the name of one to create. Defaults to **rails_cache**.
-* `:create_index` - By default, we create an index on the _key_ and _expires_ fields. Set to **false** to override.
+* `:create_index` - By default, we create an index on the *_id* and *expires* fields for fast returns on cache misses. Set to **false** to override.
 * `:expires_in` - The global length of time a cache key remains valid. Defaults to 1 year. Can also be set on individual cache writes.
+* `:namespace` - Set this if you want different applications to share the same Mongo collection without key collisions. (Namespacing is baked into Rails 3, but MongoStore implements it manually for Rails 2 as well.)
 
 ## Other Goodness
 
 MongoStore is a drop-in caching store and doesn't require any special treatment. The only extra behavior on top of what you get from ActiveSupport::Cache::Store is as follows:
 
 ### :expires_in option on the #write method
-This is the same behavior as the option in the MemCacheStore. Specify a number of seconds or an ActiveSupport helper equivalent, e.g.: `:expires_in => 5.minutes`.  Keys past their expiration date are not returned on reads.
+This was built into all stores in Rails 3; in Rails 2, we implement it with same behavior as the option in MemCacheStore. Specify a number of seconds or an ActiveSupport helper equivalent, e.g.: `:expires_in => 5.minutes`.  Keys past their expiration date are not returned on reads.
 
 _**NOTE:** This behavior is fairly dumb and uses `Time.now` on the application side.  If you have a number of app servers hitting one database and their times aren't in sync, expect unwarranted cache misses._
 
@@ -61,8 +63,6 @@ Empties the cache. The moral equivalent of `Rails.cache.delete_matched(/.*/)` bu
 * Do not use a capped collection. Doing so will prevent deletes from deleting, some updates from updating, and the trees and flowers from growing in the Spring.
 
 * This code and specs were written for Ruby 1.9.1.  I tried to make sure it works fine for you anachronists (Ruby 1.8), but didn't confirm it. Please register an issue if I forgot your quaint historical syntax. I also didn't test it in JRuby, Rubinius, IronRuby, or your roommate's HP-48 calculator. 
-
-* Likewise, this was written for Rails 2.3.5. I have not tried to run it in Rails 3 yet, which is still in beta at the time of this writing. I don't even know if Rails 3 uses the same caching approach. It probably caches using pure energy or something, and removes carbon from the atmosphere at the same time. 
 
 * I am optimistic about performance but have not benchmarked it, apart from  "It's faster than not using a cache."
 
