@@ -69,7 +69,7 @@ module ActiveSupport
           store.collection.should_not be_nil
         end
           
-        it "defaults to an expiration of 1 year" do
+        it "defaults to an expiration of 1 day" do
           store = ActiveSupport::Cache.lookup_store(:mongo_store)
           store.expires_in.should == 1.day
         end
@@ -105,11 +105,11 @@ module ActiveSupport
     
         it "can write values" do
           @store.write('fnord', 'I am vaguely disturbed.')
-          @store.collection.find_one(:key => 'fnord')['value'].should == "I am vaguely disturbed."
+          @store.collection.find_one('_id' => 'fnord')['value'].should == "I am vaguely disturbed."
         end
     
         it "can read values" do
-          @store.collection.insert({:key => 'yoo', :value => 'yar', :expires => (Time.now + 10)})
+          @store.collection.insert({'_id' => 'yoo', :value => 'yar', :expires => (Time.now + 10)})
           @store.read('yoo').should == 'yar'
         end
     
@@ -184,11 +184,11 @@ module ActiveSupport
           end
           
           it "uses the default namespace" do
-            @store.collection.find_one(:key => /ns1.*foo/)['value'].should == "bar"
+            @store.collection.find_one('_id' => /ns1.*foo/)['value'].should == "bar"
           end
           
           it "can override the namespace" do
-            @store.collection.find_one(:key => /ns2.*foo/)['value'].should == "yar"
+            @store.collection.find_one('_id' => /ns2.*foo/)['value'].should == "yar"
           end
           
           it "can have different values in different namespaces" do

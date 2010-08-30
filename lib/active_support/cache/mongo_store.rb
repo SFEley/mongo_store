@@ -13,14 +13,14 @@ module MongoStore
         super
         opts = local_options ? options.merge(local_options) : options
         expires = Time.now + opts[:expires_in]
-        collection.update({'key' => namespaced_key(key, opts)}, {'$set' => {'value' => value, 'expires' => expires}}, :upsert => true)
+        collection.update({'_id' => namespaced_key(key, opts)}, {'$set' => {'value' => value, 'expires' => expires}}, :upsert => true)
       end
       
       # Reads the value from the cache collection.
       def read(key, local_options=nil)
         super
         opts = local_options ? options.merge(local_options) : options
-        if doc = collection.find_one('key' => namespaced_key(key, opts), 'expires' => {'$gt' => Time.now})
+        if doc = collection.find_one('_id' => namespaced_key(key, opts), 'expires' => {'$gt' => Time.now})
           doc['value']
         end
       end
@@ -29,7 +29,7 @@ module MongoStore
       def delete(key, local_options=nil)
         super
         opts = local_options ? options.merge(local_options) : options
-        collection.remove({'key' => namespaced_key(key,opts)})
+        collection.remove({'_id' => namespaced_key(key,opts)})
       end
       
 
@@ -37,7 +37,7 @@ module MongoStore
       def delete_matched(key, local_options=nil)
         super
         opts = local_options ? options.merge(local_options) : options
-        collection.remove({'key' => key_matcher(key,opts)})
+        collection.remove({'_id' => key_matcher(key,opts)})
       end
 
             
@@ -75,17 +75,17 @@ module MongoStore
         value = entry.value
         value = value.to_mongo if value.respond_to? :to_mongo
         begin
-          collection.update({'key' => key}, {'$set' => {'value' => value, 'expires' => expires}}, :upsert => true)
+          collection.update({'_id' => key}, {'$set' => {'value' => value, 'expires' => expires}}, :upsert => true)
         rescue BSON::InvalidDocument
           value = value.to_s and retry unless value.is_a? String
         end
       end
       def read_entry(key, options=nil)
-        doc = collection.find_one('key' => key, 'expires' => {'$gt' => Time.now})
+        doc = collection.find_one('_id' => key, 'expires' => {'$gt' => Time.now})
         ActiveSupport::Cache::Entry.new(doc['value']) if doc
       end
       def delete_entry(key, options=nil)
-        collection.remove({'key' => key})
+        collection.remove({'_id' => key})
       end
       def delete_matched(pattern, options=nil)
         options = merged_options(options)
@@ -185,7 +185,7 @@ module ActiveSupport
           end
         end
         coll = db.create_collection(options[:collection_name])
-        coll.create_index([['key',Mongo::ASCENDING], ['expires',Mongo::DESCENDING]]) if options[:create_index]
+        coll.create_index([['_id',Mongo::ASCENDING], ['expires',Mongo::DESCENDING]]) if options[:create_index]
         coll
       end
         
