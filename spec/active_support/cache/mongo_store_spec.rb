@@ -111,6 +111,13 @@ module ActiveSupport
           @store.read('yoo').should == 'yar'
         end
         
+        it "can read multiple values" do
+          @store.collection.insert({'_id' => 'multi1', :value => 'weee', :expires => (Time.now + 10)})
+          @store.collection.insert({'_id' => 'multi2', :value => 'wooo', :expires => (Time.now + 10)})
+          @store.read_multi('multi1','multi2').should == { 'multi1' => 'weee', 'multi2' => 'wooo' }
+          @store.read_multi('multi1','multi2','multi3').should == { 'multi1' => 'weee', 'multi2' => 'wooo', 'multi3' => nil }
+        end
+        
         it "can delete keys" do
           @store.write('foo', 'bar')
           @store.read('foo').should == 'bar'

@@ -79,13 +79,30 @@ module MongoStore
           value = value.to_s and retry unless value.is_a? String
         end
       end
+      
       def read_entry(key, options=nil)
         doc = collection.find_one('_id' => key, 'expires' => {'$gt' => Time.now})
         ActiveSupport::Cache::Entry.new(doc['value']) if doc
       end
+      
+      def read_multi(*keys)
+        docs   = {}
+        cursor = collection.find('_id' => {'$in' => keys}, 'expires' => {'$gt' => Time.now})
+        
+        keys.each do |key|
+          docs[key] = nil
+        end
+        
+        cursor.each do |doc|
+          docs[ doc['_id'] ] = doc['value']
+        end
+        return docs
+      end
+      
       def delete_entry(key, options=nil)
         collection.remove({'_id' => key})
       end
+      
       def delete_matched(pattern, options=nil)
         options = merged_options(options)
         instrument(:delete_matched, pattern.inspect) do
