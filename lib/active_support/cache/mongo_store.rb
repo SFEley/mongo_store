@@ -24,7 +24,7 @@ module MongoStore
           doc['value']
         end
       end
-        
+      
       # Takes the specified value out of the collection.
       def delete(key, local_options=nil)
         super
@@ -32,44 +32,43 @@ module MongoStore
         collection.remove({'_id' => namespaced_key(key,opts)})
       end
       
-
       # Takes the value matching the pattern out of the collection.
       def delete_matched(key, local_options=nil)
         super
         opts = local_options ? options.merge(local_options) : options
         collection.remove({'_id' => key_matcher(key,opts)})
       end
-
-            
-      protected
-
-      # Lifted from Rails 3 ActiveSupport::Cache::Store
-      def namespaced_key(key, options)
-        namespace = options[:namespace] if options
-        prefix = namespace.is_a?(Proc) ? namespace.call : namespace
-        key = "#{prefix}:#{key}" if prefix
-        key
-      end
       
-      # Lifted from Rails 3 ActiveSupport::Cache::Store
-      def key_matcher(pattern, options)
-        prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
-        if prefix
-          source = pattern.source
-          if source.start_with?('^')
-            source = source[1, source.length]
-          else
-            source = ".*#{source[0, source.length]}"
-          end
-          Regexp.new("^#{Regexp.escape(prefix)}:#{source}", pattern.options)
-        else
-          pattern
+      protected
+        
+        # Lifted from Rails 3 ActiveSupport::Cache::Store
+        def namespaced_key(key, options)
+          namespace = options[:namespace] if options
+          prefix = namespace.is_a?(Proc) ? namespace.call : namespace
+          key = "#{prefix}:#{key}" if prefix
+          key
         end
-      end
+        
+        # Lifted from Rails 3 ActiveSupport::Cache::Store
+        def key_matcher(pattern, options)
+          prefix = options[:namespace].is_a?(Proc) ? options[:namespace].call : options[:namespace]
+          if prefix
+            source = pattern.source
+            if source.start_with?('^')
+              source = source[1, source.length]
+            else
+              source = ".*#{source[0, source.length]}"
+            end
+            Regexp.new("^#{Regexp.escape(prefix)}:#{source}", pattern.options)
+          else
+            pattern
+          end
+        end
       
     end
     
     module Rails3
+      
       def write_entry(key, entry, options)
         expires = Time.now + options[:expires_in]
         value = entry.value
@@ -94,6 +93,7 @@ module MongoStore
           delete_entry(matcher, options) 
         end
       end
+      
     end
     
     module Store
@@ -154,7 +154,7 @@ module ActiveSupport
       def collection
         @collection ||= make_collection
       end
-            
+      
       # Removes old cached values that have expired.  Set this up to run occasionally in delayed_job, etc., if you
       # start worrying about space.  (In practice, because we favor updating over inserting, space is only wasted
       # if the key itself never gets cached again.  It also means you can _reduce_ efficiency by running this
@@ -169,25 +169,26 @@ module ActiveSupport
       end
       
       private
-      def mongomapper?
-        Kernel.const_defined?(:MongoMapper) && MongoMapper.respond_to?(:database) && MongoMapper.database
-      end
-      
-      def make_collection
-        db = case options[:db]
-        when Mongo::DB then options[:db]
-        when String then Mongo::DB.new(options[:db], Mongo::Connection.new)
-        else
-          if mongomapper?
-            MongoMapper.database
-          else
-            Mongo::DB.new(options[:db_name], Mongo::Connection.new)
-          end
+        
+        def mongomapper?
+          Kernel.const_defined?(:MongoMapper) && MongoMapper.respond_to?(:database) && MongoMapper.database
         end
-        coll = db.create_collection(options[:collection_name])
-        coll.create_index([['_id',Mongo::ASCENDING], ['expires',Mongo::DESCENDING]]) if options[:create_index]
-        coll
-      end
+        
+        def make_collection
+          db = case options[:db]
+          when Mongo::DB then options[:db]
+          when String then Mongo::DB.new(options[:db], Mongo::Connection.new)
+          else
+            if mongomapper?
+              MongoMapper.database
+            else
+              Mongo::DB.new(options[:db_name], Mongo::Connection.new)
+            end
+          end
+          coll = db.create_collection(options[:collection_name])
+          coll.create_index([['_id',Mongo::ASCENDING], ['expires',Mongo::DESCENDING]]) if options[:create_index]
+          coll
+        end
         
     end
   end

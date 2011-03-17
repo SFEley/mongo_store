@@ -10,11 +10,11 @@ module ActiveSupport
       describe "initializing" do
         it "can take a Mongo::Collection object" do
           db = Mongo::DB.new('mongo_store_test', Mongo::Connection.new)
-          coll = Mongo::Collection.new(db, 'foostore')
+          coll = Mongo::Collection.new('foostore', db)
           store = ActiveSupport::Cache.lookup_store(:mongo_store, coll)
           store.collection.should == coll
         end
-    
+        
         it "can take a collection name" do
           store = ActiveSupport::Cache.lookup_store(:mongo_store, 'foo')
           store.collection.name.should == 'foo'
@@ -50,7 +50,6 @@ module ActiveSupport
           MongoMapper.expects(:database).at_least_once.returns(lazy)
           store.collection.db.should == lazy
         end
-          
         
         it "defaults the database name to 'rails_cache'" do
           store = ActiveSupport::Cache.lookup_store(:mongo_store)
@@ -88,8 +87,7 @@ module ActiveSupport
           store = ActiveSupport::Cache.lookup_store(:mongo_store, 'foo', :expires_in => 1.day)
           store.expires_in.should == 1.day
         end
-                
-
+        
         after(:all) do
           c = Mongo::Connection.new
           %w(rails_cache mongo_store_test_name mongo_store_test_deebee mongo_store_test_mappy mongo_store_test_lazy).each do |db|
@@ -97,29 +95,29 @@ module ActiveSupport
           end
         end  
       end
-  
+      
       describe "caching" do
         before(:all) do
           @store = ActiveSupport::Cache.lookup_store(:mongo_store, 'mongo_store_test', :db => 'mongo_store_test')
         end
-    
+        
         it "can write values" do
           @store.write('fnord', 'I am vaguely disturbed.')
           @store.collection.find_one('_id' => 'fnord')['value'].should == "I am vaguely disturbed."
         end
-    
+        
         it "can read values" do
           @store.collection.insert({'_id' => 'yoo', :value => 'yar', :expires => (Time.now + 10)})
           @store.read('yoo').should == 'yar'
         end
-    
+        
         it "can delete keys" do
           @store.write('foo', 'bar')
           @store.read('foo').should == 'bar'
           @store.delete('foo')
           @store.read('foo').should be_nil
         end
-    
+        
         it "can delete keys matching a regular expression" do
           @store.write('foo', 'bar')
           @store.write('fodder', 'bother')
@@ -135,7 +133,7 @@ module ActiveSupport
           @store.read('fodder').should == 'bother'
           @store.read('yoo').should be_nil
         end
-    
+        
         it "can expire a value with the :expires_in option" do
           @store.write('ray', 'dar', :expires_in => 2.seconds)
           @store.read('ray').should == 'dar'
@@ -164,7 +162,7 @@ module ActiveSupport
           @store.clean_expired
           @store.collection.count.should == 1
         end
-          
+        
         it "can clear the whole cache" do
           @store.write('foo', 'bar')
           @store.write('yoo', 'yar', :expires_in => 2.days)
@@ -172,6 +170,7 @@ module ActiveSupport
           @store.clear
           @store.collection.count.should == 0
         end
+        
         describe "namespacing" do
           before(:each) do
             @store.options[:namespace] = 'ns1'
@@ -227,9 +226,9 @@ module ActiveSupport
             @store.read('too', :namespace => 'ns2').should be_nil
             @store.read('foz', :namespace => 'ns2').should == 'bat'
           end
-
+          
         end
-    
+        
         after(:each) do
           @store.collection.remove   # Clear our records
         end
