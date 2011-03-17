@@ -1,3 +1,7 @@
+0.3.1 / 2011-03-17
+==================
+  * Added in an optimised 'read_multi' function for Rails 3 - performs a single db call rather than one for each key
+
 0.3.0 / 2010-08-30 
 ==================
   * We have a History file now
