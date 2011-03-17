@@ -87,15 +87,16 @@ module MongoStore
       
       def read_multi(*keys)
         docs   = {}
-        cursor = collection.find('_id' => {'$in' => keys}, 'expires' => {'$gt' => Time.now})
-        
         keys.each do |key|
           docs[key] = nil
         end
         
-        cursor.each do |doc|
-          docs[ doc['_id'] ] = doc['value']
+        collection.find({ '_id' => {'$in' => keys}, 'expires' => {'$gt' => Time.now} }, :timeout => false ) do |cursor|
+          cursor.each do |doc|
+            docs[ doc['_id'] ] = doc['value']
+          end
         end
+        
         return docs
       end
       
