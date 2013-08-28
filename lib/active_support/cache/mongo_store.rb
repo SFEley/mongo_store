@@ -97,7 +97,7 @@ module MongoStore
     end
     
     module Store
-      rails3 = defined?(::Rails) && ::Rails.version =~ /^3\./
+      rails3 = defined?(::Rails) && ::Rails.version =~ /^(3|4)\./
       include rails3 ? Rails3 : Rails2
       
       def expires_in
