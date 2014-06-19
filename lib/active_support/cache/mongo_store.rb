@@ -169,8 +169,13 @@ module ActiveSupport
       end
       
       private
+
       def mongomapper?
         Kernel.const_defined?(:MongoMapper) && MongoMapper.respond_to?(:database) && MongoMapper.database
+      end
+
+      def mongoid?
+        Kernel.const_defined?(:Mongoid) && Mongoid.respond_to?(:database) && Mongoid.database
       end
       
       def make_collection
@@ -180,6 +185,8 @@ module ActiveSupport
         else
           if mongomapper?
             MongoMapper.database
+          elsif mongoid?
+            Mongoid.database
           else
             Mongo::DB.new(options[:db_name], Mongo::Connection.new)
           end
